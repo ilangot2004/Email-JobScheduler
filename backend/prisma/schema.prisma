@@ -1,6 +1,7 @@
 // Email Scheduler Database Schema
 generator client {
-  provider = "prisma-client"
+  // Use the classic Prisma Client generator that outputs to node_modules/@prisma/client
+  provider = "prisma-client-js"
 }
 
 datasource db {

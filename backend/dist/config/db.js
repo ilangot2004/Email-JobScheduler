@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.prisma = void 0;
-const prisma_1 = require("@generated/prisma");
+const client_1 = require("@prisma/client");
 const env_1 = require("./env");
-exports.prisma = new prisma_1.PrismaClient({
+exports.prisma = new client_1.PrismaClient({
     datasourceUrl: env_1.env.database.url,
 });
 //# sourceMappingURL=db.js.map

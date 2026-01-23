@@ -2,7 +2,7 @@
   "name": "backend",
   "version": "1.0.0",
   "private": true,
-  "main": "dist/server.js",
+  "main": "dist/src/server.js",
   "engines": {
     "node": ">=18"
   },
@@ -10,8 +10,8 @@
     "dev": "ts-node-dev -r tsconfig-paths/register --transpile-only --ignore-watch node_modules src/server.ts",
     "worker": "ts-node-dev -r tsconfig-paths/register --transpile-only --ignore-watch node_modules src/worker/index.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
-    "start:worker": "node dist/worker/index.js",
+    "start": "node dist/src/server.js",
+    "start:worker": "node dist/src/worker/index.js",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",

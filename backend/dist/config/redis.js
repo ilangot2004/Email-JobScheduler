@@ -11,6 +11,13 @@ exports.redis = new ioredis_1.default(env_1.env.redis.url, {
     maxRetriesPerRequest: null, // Required for BullMQ
     enableReadyCheck: false,
     lazyConnect: true,
+    retryStrategy: (times) => {
+        // Don't retry if Redis isn't available locally
+        if (times > 3) {
+            return null; // Stop retrying
+        }
+        return Math.min(times * 50, 2000);
+    },
 });
 // BullMQ connection options (avoid ioredis type mismatches)
 exports.bullConnection = {
@@ -20,7 +27,12 @@ exports.redis.on('connect', () => {
     console.log('✅ Connected to Redis');
 });
 exports.redis.on('error', (err) => {
-    console.error('❌ Redis connection error:', err);
-    console.error('💡 Make sure Redis is running on', env_1.env.redis.url);
+    // Suppress connection refused errors in local development
+    // Redis is only needed for the email worker, not the API
+    if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
+        // Silent - expected when Redis isn't running locally
+        return;
+    }
+    console.error('❌ Redis connection error:', err.message);
 });
 //# sourceMappingURL=redis.js.map

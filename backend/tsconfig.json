@@ -26,7 +26,10 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@config/*": ["config/*"]
+    }
   },
   "include": [
     "src/**/*",
