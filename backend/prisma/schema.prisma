@@ -1,0 +1,70 @@
+// Email Scheduler Database Schema
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// User accounts (Google OAuth)
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  name       String?
+  avatarUrl  String?
+  createdAt  DateTime @default(now())
+
+  campaigns EmailCampaign[]
+
+  @@map("users")
+}
+
+// Email campaigns (scheduling requests)
+model EmailCampaign {
+  id                      String   @id @default(cuid())
+  userId                  String
+  subject                 String
+  body                    String   @db.Text
+  startTime               DateTime
+  delayBetweenEmailsSeconds Int
+  hourlyLimit             Int
+  status                  EmailCampaignStatus @default(scheduled)
+  createdAt               DateTime @default(now())
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs    EmailJob[]
+
+  @@map("email_campaigns")
+}
+
+// Individual email jobs
+model EmailJob {
+  id            String      @id @default(cuid())
+  campaignId    String
+  recipientEmail String
+  scheduledTime DateTime
+  sentTime      DateTime?
+  status        EmailJobStatus @default(scheduled)
+  error         String?     @db.Text
+
+  campaign EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, recipientEmail])
+  @@map("email_jobs")
+}
+
+enum EmailCampaignStatus {
+  scheduled
+  running
+  completed
+}
+
+enum EmailJobStatus {
+  scheduled
+  sent
+  failed
+  retrying
+}
