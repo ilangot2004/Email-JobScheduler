@@ -26,10 +26,7 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
-    "paths": {
-      "@generated/prisma": ["./src/generated/prisma/client"]
-    }
+    "baseUrl": "."
   },
   "include": [
     "src/**/*",
