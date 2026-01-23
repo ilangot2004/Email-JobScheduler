@@ -3,7 +3,6 @@ import cors from 'cors';
 import { env } from '../config/env';
 import { authRoutes } from './routes/auth';
 import { emailRoutes } from './routes/email';
-import { prisma } from '../config/db';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -55,17 +54,6 @@ app.use(notFoundHandler);
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully');
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-process.on('SIGINT', async () => {
-  console.log('SIGINT received, shutting down gracefully');
-  await prisma.$disconnect();
-  process.exit(0);
-});
+// Note: Graceful shutdown is handled in server.ts to coordinate with worker
 
 export default app;
