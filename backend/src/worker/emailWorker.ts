@@ -1,5 +1,5 @@
 import { Worker, Job } from 'bullmq';
-import { redis, bullRedis } from '../../config/redis';
+import { redis, bullConnection } from '../../config/redis';
 import { prisma } from '../../config/db';
 import { env } from '../../config/env';
 
@@ -183,14 +183,14 @@ export const createEmailWorker = () => {
     'email-queue',
     sendEmailProcessor,
     {
-      connection: bullRedis, // Use BullMQ-specific Redis connection
+      connection: bullConnection, // Use BullMQ connection options
       concurrency: env.worker.concurrency,
       limiter: {
         max: 1,
         duration: 2000, // Minimum 2 seconds between emails
       },
-      removeOnComplete: 100,
-      removeOnFail: 50,
+      removeOnComplete: { count: 100 },
+      removeOnFail: { count: 50 },
     }
   );
 

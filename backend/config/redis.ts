@@ -8,11 +8,10 @@ export const redis = new Redis(env.redis.url, {
   lazyConnect: true,
 });
 
-// Redis connection specifically for BullMQ (separate instance)
-export const bullRedis = new Redis(env.redis.url, {
-  maxRetriesPerRequest: null, // BullMQ requires this to be null
-  enableReadyCheck: false,
-});
+// BullMQ connection options (avoid ioredis type mismatches)
+export const bullConnection = {
+  url: env.redis.url,
+} as const;
 
 redis.on('connect', () => {
   console.log('✅ Connected to Redis');
@@ -21,12 +20,4 @@ redis.on('connect', () => {
 redis.on('error', (err) => {
   console.error('❌ Redis connection error:', err);
   console.error('💡 Make sure Redis is running on', env.redis.url);
-});
-
-bullRedis.on('connect', () => {
-  console.log('✅ BullMQ Redis connection established');
-});
-
-bullRedis.on('error', (err) => {
-  console.error('❌ BullMQ Redis connection error:', err);
 });

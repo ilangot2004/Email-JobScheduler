@@ -1,17 +1,18 @@
 import { Router } from 'express';
+import type { Response } from 'express';
 import { Queue } from 'bullmq';
 import { prisma } from '../../config/db';
-import { bullRedis } from '../../config/redis';
+import { bullConnection } from '../../config/redis';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
 
 const router = Router();
 
 // Create email queue (use BullMQ-specific Redis connection)
-const emailQueue = new Queue('email-queue', { connection: bullRedis });
+const emailQueue = new Queue('email-queue', { connection: bullConnection });
 
 // Schedule email campaign
-router.post('/schedule', authenticateToken, asyncHandler(async (req: AuthRequest, res) => {
+router.post('/schedule', authenticateToken, asyncHandler(async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     throw new AppError('User not authenticated', 401);
   }
@@ -96,8 +97,8 @@ router.post('/schedule', authenticateToken, asyncHandler(async (req: AuthRequest
         {
           delay,
           jobId: job.id, // Ensures no duplicates
-          removeOnComplete: 100,
-          removeOnFail: 50,
+          removeOnComplete: { count: 100 },
+          removeOnFail: { count: 50 },
         }
       );
     }
@@ -115,7 +116,7 @@ router.post('/schedule', authenticateToken, asyncHandler(async (req: AuthRequest
 }));
 
 // Get scheduled emails
-router.get('/scheduled', authenticateToken, asyncHandler(async (req: AuthRequest, res) => {
+router.get('/scheduled', authenticateToken, asyncHandler(async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     throw new AppError('User not authenticated', 401);
   }
@@ -155,7 +156,7 @@ router.get('/scheduled', authenticateToken, asyncHandler(async (req: AuthRequest
 }));
 
 // Get sent/failed emails
-router.get('/sent', authenticateToken, asyncHandler(async (req: AuthRequest, res) => {
+router.get('/sent', authenticateToken, asyncHandler(async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     throw new AppError('User not authenticated', 401);
   }
@@ -196,7 +197,7 @@ router.get('/sent', authenticateToken, asyncHandler(async (req: AuthRequest, res
 }));
 
 // Get campaign statistics
-router.get('/stats', authenticateToken, asyncHandler(async (req: AuthRequest, res) => {
+router.get('/stats', authenticateToken, asyncHandler(async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     throw new AppError('User not authenticated', 401);
   }
@@ -248,12 +249,12 @@ router.get('/stats', authenticateToken, asyncHandler(async (req: AuthRequest, re
 }));
 
 // Get single email detail (must be last, after /scheduled, /sent, and /stats routes)
-router.get('/:id', authenticateToken, asyncHandler(async (req: AuthRequest, res) => {
+router.get('/:id', authenticateToken, asyncHandler(async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     throw new AppError('User not authenticated', 401);
   }
 
-  const { id } = req.params;
+  const id = req.params.id as string;
 
   const email = await prisma.emailJob.findFirst({
     where: {

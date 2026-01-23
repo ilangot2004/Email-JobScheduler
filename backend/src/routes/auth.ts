@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../../config/db';
@@ -10,7 +11,7 @@ const router = Router();
 const client = new OAuth2Client(env.google.clientId);
 
 // Google OAuth verification and user creation/login
-router.post('/google', asyncHandler(async (req, res) => {
+router.post('/google', asyncHandler(async (req: Request, res: Response) => {
   const { token } = req.body;
 
   if (!token) {
@@ -73,7 +74,7 @@ router.post('/google', asyncHandler(async (req, res) => {
 }));
 
 // Get current user profile
-router.get('/me', authenticateToken, asyncHandler(async (req: AuthRequest, res) => {
+router.get('/me', authenticateToken, asyncHandler(async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     throw new AppError('User not authenticated', 401);
   }

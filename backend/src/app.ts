@@ -13,7 +13,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   process.env.FRONTEND_URL, // Add your deployed frontend URL here
-].filter(Boolean); // Remove undefined values
+].filter((v): v is string => Boolean(v)); // Remove undefined values + satisfy TS
 
 app.use(cors({
   origin: allowedOrigins.length > 0 ? allowedOrigins : ['http://localhost:3000'],
