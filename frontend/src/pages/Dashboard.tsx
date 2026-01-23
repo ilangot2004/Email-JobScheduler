@@ -117,6 +117,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     {user.avatarUrl ? (
       <img
         src={user.avatarUrl}
+        alt={`${user.name || 'User'} avatar`}
         className="w-10 h-10 rounded-full"
       />
     ) : (

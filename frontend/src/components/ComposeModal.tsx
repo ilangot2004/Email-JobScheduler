@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { emailAPI, EmailScheduleRequest } from '../api/email';
 import Button from './ui/Button';
-import Input from './ui/Input';
 import Textarea from './ui/Textarea';
 
 interface ComposeModalProps {
@@ -25,7 +24,6 @@ const ComposeModal: React.FC<ComposeModalProps> = ({ onClose, onSuccess, userEma
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<File[]>([]);
-  const [uploadListText, setUploadListText] = useState('');
   const [uploadStatus, setUploadStatus] = useState<{ success: boolean; message: string; count: number } | null>(null);
 
   // Parse recipients from text input
@@ -160,7 +158,6 @@ const ComposeModal: React.FC<ComposeModalProps> = ({ onClose, onSuccess, userEma
     reader.onload = (event) => {
       try {
         const text = event.target?.result as string;
-        setUploadListText(text);
         
         // Parse the file content
         const parsed = parseFileContent(text, file.name);

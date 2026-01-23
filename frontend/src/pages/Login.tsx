@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { authAPI, User } from '../api/auth';
 import { env } from '../config/env';
 
@@ -15,6 +15,20 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleGoogleResponse = useCallback(async (response: any) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const result = await authAPI.googleLogin(response.credential);
+      onLogin(result.user, result.token);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  }, [onLogin]);
 
   useEffect(() => {
     // Check if Google Client ID is configured
@@ -61,21 +75,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     } else {
       initializeGoogleSignIn();
     }
-  }, []);
-
-  const handleGoogleResponse = async (response: any) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const result = await authAPI.googleLogin(response.credential);
-      onLogin(result.user, result.token);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [handleGoogleResponse]);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
