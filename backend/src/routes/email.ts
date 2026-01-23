@@ -82,26 +82,43 @@ router.post('/schedule', authenticateToken, asyncHandler(async (req: AuthRequest
     }
 
     // Add jobs to BullMQ queue
+    let queuedCount = 0;
+    const queueErrors: string[] = [];
+
     for (const job of emailJobs) {
       const delay = Math.max(0, job.scheduledTime.getTime() - Date.now());
 
-      await emailQueue.add(
-        'send-email',
-        {
-          emailJobId: job.id,
-          campaignId: campaign.id,
-          recipientEmail: job.recipientEmail,
-          subject: campaign.subject,
-          body: campaign.body,
-        },
-        {
-          delay,
-          jobId: job.id, // Ensures no duplicates
-          removeOnComplete: { count: 100 },
-          removeOnFail: { count: 50 },
-        }
-      );
+      try {
+        const queueJob = await emailQueue.add(
+          'send-email',
+          {
+            emailJobId: job.id,
+            campaignId: campaign.id,
+            recipientEmail: job.recipientEmail,
+            subject: campaign.subject,
+            body: campaign.body,
+          },
+          {
+            delay,
+            jobId: job.id, // Ensures no duplicates
+            removeOnComplete: { count: 100 },
+            removeOnFail: { count: 50 },
+          }
+        );
+        queuedCount++;
+        console.log(`✅ Queued job ${job.id} for ${job.recipientEmail}, delay: ${delay}ms`);
+      } catch (error: any) {
+        const errorMsg = `Failed to queue job ${job.id}: ${error.message}`;
+        console.error(`❌ ${errorMsg}`);
+        queueErrors.push(errorMsg);
+      }
     }
+
+    if (queueErrors.length > 0) {
+      console.warn(`⚠️ ${queueErrors.length} jobs failed to queue out of ${emailJobs.length}`);
+    }
+
+    console.log(`📧 Campaign ${campaign.id} scheduled: ${queuedCount}/${emailJobs.length} jobs queued`);
 
     res.json({
       campaign: {
@@ -111,7 +128,9 @@ router.post('/schedule', authenticateToken, asyncHandler(async (req: AuthRequest
         startTime: campaign.startTime,
         status: campaign.status,
       },
-      message: `Campaign scheduled successfully. ${recipients.length} emails will be sent.`,
+      message: `Campaign scheduled successfully. ${queuedCount} emails queued for sending.`,
+      queued: queuedCount,
+      total: emailJobs.length,
     });
 }));
 

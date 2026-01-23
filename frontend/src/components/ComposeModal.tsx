@@ -235,17 +235,26 @@ const ComposeModal: React.FC<ComposeModalProps> = ({ onClose, onSuccess, userEma
         throw new Error('Please enter at least one valid email address');
       }
 
+      if (!formData.startTime) {
+        throw new Error('Please select a start time');
+      }
+
       const submitData = {
         ...formData,
         recipients: allRecipients,
       };
 
-      await emailAPI.scheduleCampaign(submitData);
+      const response = await emailAPI.scheduleCampaign(submitData);
+      
+      // Success - close modal and refresh data
+      console.log('Campaign scheduled successfully:', response);
       onSuccess();
+      onClose(); // Also explicitly close the modal
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || 'Failed to schedule campaign');
-    } finally {
-      setLoading(false);
+      console.error('Failed to schedule campaign:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to schedule campaign. Please try again.';
+      setError(errorMessage);
+      setLoading(false); // Stop loading on error
     }
   };
 
@@ -318,9 +327,13 @@ const ComposeModal: React.FC<ComposeModalProps> = ({ onClose, onSuccess, userEma
             </svg>
           </button>
           <Button
-            onClick={handleSubmit}
+            onClick={(e) => {
+              e.preventDefault();
+              handleSubmit(e as any);
+            }}
             disabled={loading}
             className="px-6"
+            type="button"
           >
             {loading ? (
               <span className="flex items-center">

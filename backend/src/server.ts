@@ -13,8 +13,18 @@ if (process.env.ENABLE_WORKER === 'true') {
   import('./worker/index').then((workerModule) => {
     workerInstance = workerModule.worker;
     console.log('✅ Email worker started successfully');
+    
+    // Verify worker is listening
+    workerInstance.on('ready', () => {
+      console.log('✅ Worker is ready to process jobs');
+    });
+    
+    workerInstance.on('error', (err: Error) => {
+      console.error('❌ Worker error:', err);
+    });
   }).catch((err) => {
     console.error('❌ Failed to start worker:', err);
+    console.error('Stack:', err.stack);
   });
 }
 
